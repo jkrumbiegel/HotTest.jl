@@ -15,7 +15,7 @@ Rerunning the tests afterwards should be quick.
 Also, HotTest.jl can filter out testsets by name using regular expressions, so you can choose to run only a subset of them, shortening your waiting periods further.
 This also works for nested testsets.
 
-## Example
+## Example code
 
 First, you need to activate a test environment so that the tests' dependencies can be loaded correctly.
 HotTest.jl reexports `TestEnv.activate()` for this purpose:
@@ -38,6 +38,12 @@ HotTest.test(; filter = r"xyz")
 # the `nothing` filter accepts any title.
 HotTest.test(; filter = (r"abc", nothing, r"xyz"))
 ```
+
+## Example video
+
+Here is a screen recording of a session in which I use HotTest.jl to run some tests of GridLayoutBase.jl.
+
+https://user-images.githubusercontent.com/22495855/199820250-dbbaed99-035c-4a65-bce8-9c55d626839b.mov
 
 ## How it works
 
