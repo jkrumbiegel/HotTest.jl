@@ -56,3 +56,5 @@ In order to be able to correctly transform and match nested testsets, any occurr
 `include("some_file.jl")` is resolved immediately at parse time and replaced with the code it references.
 This means that HotTest.jl can only work correctly if there are no _dynamic_ `include` statements.
 Currently, only string literals inside `include` are accepted.
+
+Also, the `@testset` macros cannot be spliced in by other macros, all of them must be present in the actual source code.
