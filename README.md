@@ -27,10 +27,13 @@ HotTest.activate()
 
 # run all tests in `test/runtests.jl`
 HotTest.test()
+
 # run all tests in a manually specified location
 HotTest.test("path_to/some_file.jl")
+
 # only run testsets with `xyz` in their title
 HotTest.test(; filter = r"xyz")
+
 # specify filters for levels of nested testsets using a tuple.
 # the `nothing` filter accepts any title.
 HotTest.test(; filter = (r"abc", nothing, r"xyz"))
