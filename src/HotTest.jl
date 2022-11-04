@@ -22,6 +22,25 @@ function test(file = "test/runtests.jl"; filter = nothing, verbose = false)
     Core.eval(Sandbox, expr)
 end
 
+function list(file = "test/runtests.jl")
+    exp = parsecode(read(file, String))
+    exp = transform_source(exp, nothing, file, 1; verbose = false)
+    print_testsets(exp, 1)
+end
+
+function print_testsets(exp::Expr, level)
+    if MacroTools.@capture exp @testset name_ block_
+        println(" " ^ (2 * (level-1)), repr(name))
+        print_testsets(block, level + 1)
+    else
+        for arg in exp.args
+            print_testsets(arg, level)
+        end
+    end
+end
+
+print_testsets(x, level) = nothing
+
 macro hottest_testset(name, block)
     quote
         @testset $name $block
