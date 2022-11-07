@@ -6,7 +6,7 @@ import TestEnv: activate
 
 export activate
 
-function test(file = "test/runtests.jl"; filter = nothing, verbose = false)
+function test(file = "test/runtests.jl"; filter = nothing, verbose = false, run_children = true)
     Sandbox = Module(:Sandbox)
     Core.eval(Sandbox, quote
         eval(x) = Core.eval($Sandbox, x)
@@ -15,17 +15,19 @@ function test(file = "test/runtests.jl"; filter = nothing, verbose = false)
     end)
 
     function transform_filtered(exp)
-        transform_source(exp, filter, file, 1; verbose)
+        transform_source(exp, filter, run_children, file, 1; verbose)
     end
 
     expr = :(include($transform_filtered, $file))
     Core.eval(Sandbox, expr)
+    return
 end
 
 function list(file = "test/runtests.jl")
     exp = parsecode(read(file, String), file)
-    exp = transform_source(exp, nothing, file, 1; verbose = false)
+    exp = transform_source(exp, nothing, true, file, 1; verbose = false)
     print_testsets(exp, 1)
+    return
 end
 
 function print_testsets(exp::Expr, level)
@@ -53,14 +55,14 @@ function evaluate_filter(filter::Regex, name)
     match(filter, name) !== nothing
 end
 
-function evaluate_filter(filter::Tuple, name, level)
+function evaluate_filter(filter::Tuple, name, level, run_children::Bool)
     if level > length(filter)
-        return false
+        return run_children
     end
     evaluate_filter(filter[level], name)
 end
 
-evaluate_filter(filter, name, level) = evaluate_filter(filter, name)
+evaluate_filter(filter, name, level, run_children) = evaluate_filter(filter, name)
 
 function parsecode(code::String, sourcefile)
     expr = Meta.parse(join(["begin", code, "end"], ";"))
@@ -75,7 +77,7 @@ function parsecode(code::String, sourcefile)
     end
 end
 
-function transform_source(expr::Expr, filter, file, level; verbose)
+function transform_source(expr::Expr, filter, run_children, file, level; verbose)
 
     # directly resolve include("path.jl") so that we can check for nested testsets
 
@@ -93,19 +95,19 @@ function transform_source(expr::Expr, filter, file, level; verbose)
         end
     end
 
-    expr = transform_testset_expressions(expr, level; verbose, filter)
+    expr = transform_testset_expressions(expr, level; verbose, filter, run_children)
 
     expr
 end
 
-function transform_testset_expressions(ex::Expr, level; verbose, filter)
+function transform_testset_expressions(ex::Expr, level; verbose, filter, run_children)
     if MacroTools.@capture ex @testset(name_, block_)
         # transform testsets with for loops such that the loop goes to the outside
         if MacroTools.isexpr(block, :for)
             inner_block = block.args[2]
-            inner_block_transformed = transform_testset_expressions(inner_block, level + 1; filter, verbose)
+            inner_block_transformed = transform_testset_expressions(inner_block, level + 1; filter, verbose, run_children)
             Expr(:for, block.args[1], quote
-                if $evaluate_filter($filter, $name, $level)
+                if $evaluate_filter($filter, $name, $level, $run_children)
                     @testset $name $inner_block_transformed
                 else
                     @static if $verbose
@@ -114,9 +116,9 @@ function transform_testset_expressions(ex::Expr, level; verbose, filter)
                 end
             end)
         else
-            block_transformed = transform_testset_expressions(block, level + 1; filter, verbose)
+            block_transformed = transform_testset_expressions(block, level + 1; filter, verbose, run_children)
             quote
-                if $evaluate_filter($filter, $name, $level)
+                if $evaluate_filter($filter, $name, $level, $run_children)
                     @testset $name $block_transformed
                 else
                     @static if $verbose
@@ -126,11 +128,11 @@ function transform_testset_expressions(ex::Expr, level; verbose, filter)
             end
         end
     else
-        Expr(ex.head, [transform_testset_expressions(arg, level; filter, verbose) for arg in ex.args]...)
+        Expr(ex.head, [transform_testset_expressions(arg, level; filter, verbose, run_children) for arg in ex.args]...)
     end
 end
 
-transform_testset_expressions(other, level; filter, verbose) = other
+transform_testset_expressions(other, level; filter, verbose, run_children) = other
 
 transform_source(x, filter, file, level; verbose) = x
 
