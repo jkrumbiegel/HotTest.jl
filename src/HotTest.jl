@@ -23,7 +23,7 @@ function test(file = "test/runtests.jl"; filter = nothing, verbose = false)
 end
 
 function list(file = "test/runtests.jl")
-    exp = parsecode(read(file, String))
+    exp = parsecode(read(file, String), file)
     exp = transform_source(exp, nothing, file, 1; verbose = false)
     print_testsets(exp, 1)
 end
