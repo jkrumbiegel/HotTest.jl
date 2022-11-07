@@ -37,6 +37,8 @@ HotTest.test(; filter = r"xyz")
 # specify filters for levels of nested testsets using a tuple.
 # the `nothing` filter accepts any title.
 HotTest.test(; filter = (r"abc", nothing, r"xyz"))
+# don't run children below nesting level 3
+HotTest.test(; filter = (r"abc", nothing, r"xyz"), run_children = false)
 ```
 
 ## Example video
