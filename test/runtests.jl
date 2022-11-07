@@ -34,3 +34,7 @@ end
 include("auxiliary.jl")
 
 @test data == 1
+
+@testset "Nested include" begin
+    include("nested_auxiliary.jl")
+end

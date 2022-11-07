@@ -83,8 +83,7 @@ function transform_source(expr::Expr, filter, file, level; verbose)
         ex = if MacroTools.@capture ex include(x_)
             if x isa String
                 include_file = normpath(joinpath(dirname(file), x))
-                file_expr = parsecode(read(include_file, String), include_file)
-                transform_source(file_expr, filter, include_file, level; verbose)
+                parsecode(read(include_file, String), include_file)
             else
                 @warn "Can't resolve dynamic include expression $ex"
                 ex
