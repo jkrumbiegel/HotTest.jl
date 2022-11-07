@@ -1,6 +1,8 @@
 using HotTest
 using Test
 
+maindir = @__DIR__
+
 @testset "HotTest.jl" begin
     @test 1 + 1 == 2
 end

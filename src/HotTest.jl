@@ -62,7 +62,18 @@ end
 
 evaluate_filter(filter, name, level) = evaluate_filter(filter, name)
 
-parsecode(code::String) = Meta.parse(join(["begin", code, "end"], ";"))
+function parsecode(code::String, sourcefile)
+    expr = Meta.parse(join(["begin", code, "end"], ";"))
+    # for @__DIR__ and @__FILE__ to work, the LineNumberNodes have to
+    # be populated with the file path from which the code was read
+    MacroTools.postwalk(expr) do x
+        if x isa LineNumberNode
+            LineNumberNode(x.line, sourcefile)
+        else
+            x
+        end
+    end
+end
 
 function transform_source(expr::Expr, filter, file, level; verbose)
 
@@ -72,7 +83,7 @@ function transform_source(expr::Expr, filter, file, level; verbose)
         ex = if MacroTools.@capture ex include(x_)
             if x isa String
                 include_file = normpath(joinpath(dirname(file), x))
-                file_expr = parsecode(read(include_file, String))
+                file_expr = parsecode(read(include_file, String), include_file)
                 transform_source(file_expr, filter, include_file, level; verbose)
             else
                 @warn "Can't resolve dynamic include expression $ex"
