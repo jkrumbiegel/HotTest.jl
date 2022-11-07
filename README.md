@@ -25,6 +25,9 @@ using HotTest
 # you should be cd'ed into the package's root directory that you want to test
 HotTest.activate()
 
+# print a list of all tests that HotTest.jl can find
+HotTest.list()
+
 # run all tests in `test/runtests.jl`
 HotTest.test()
 
