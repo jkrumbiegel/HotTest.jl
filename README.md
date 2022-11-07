@@ -34,14 +34,16 @@ HotTest.test()
 # run all tests in a manually specified location
 HotTest.test("path_to/some_file.jl")
 
-# only run testsets with `xyz` in their title
-HotTest.test(; filter = r"xyz")
+# only run testsets with `xy` or `xz` in their title
+HotTest.test(; filter = r"x[yz]")
+# if you only want to check if a substring occurs, you don't need a regex
+HotTest.test(; filter = "xyz")
 
 # specify filters for levels of nested testsets using a tuple.
-# the `nothing` filter accepts any title.
-HotTest.test(; filter = (r"abc", nothing, r"xyz"))
+# you can use "" as a shortcut to accept anything
+HotTest.test(; filter = ("abc", "", r"x[yz]"))
 # don't run children below nesting level 3
-HotTest.test(; filter = (r"abc", nothing, r"xyz"), run_children = false)
+HotTest.test(; filter = ("abc", "", r"x[yz]"), run_children = false)
 ```
 
 ## Example video

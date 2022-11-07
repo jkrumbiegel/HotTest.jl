@@ -50,6 +50,7 @@ macro hottest_testset(name, block)
 end
 
 evaluate_filter(filter::Nothing, name) = true
+evaluate_filter(filter::String, name) = occursin(filter, name)
 
 function evaluate_filter(filter::Regex, name)
     match(filter, name) !== nothing
